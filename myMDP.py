@@ -39,6 +39,8 @@ class MDP(object):
 
 		# Value iteration will update this
 		self.values = None
+		self.policy = None
+		self.q = None
 
 	
 	def isTerminal(self, state):
@@ -94,7 +96,13 @@ class StochasticShortestPath(MDP):
 		MDP.__init__(self)
 		self.setStochasticShortestPath()
 		self.valueIteration()
+		self.q_learning()
 
+	def isTerminal(self, state):
+		"""
+			Checks if MDP is in terminal state.
+		"""
+		return True if state is self.G.number_of_nodes - 1 else False 
 
 	def setStochasticShortestPath(self):
 		# New Graph
@@ -160,9 +168,28 @@ class StochasticShortestPath(MDP):
 			# Check Convergence
 			if np.max(np.abs(self.values - oldValues)) <= self.epsilon:
 				break
+	
 
+	def q_learning(self):
+		# Initial idea
+		self.q = np.zeros([len(self.s), len(self.a)])
+		livingReward = 0.3
+		while True:
+
+			oldValues = np.copy(self.q_t)
+			# For all States
+			for s in self.G.nodes:
+				# All actions
+				for a in self.G.adj[s].keys():
+					self.q[s, a] = self.r[s, a] + self.discount * \
+						np.dot(self.t[s, a, :], self.q[s, :])
+			
+			if np.max(np.abs(self.q - oldValues)) <= self.epsilon:
+				break
 
 
 ssp = StochasticShortestPath()
-print('values', ssp.values)
-print('policy', ssp.policy)
+print('values:\n', ssp.values)
+print('q:\n', ssp.q_t)
+print('policy: \n', ssp.policy)
+
