@@ -51,9 +51,19 @@ def createGraph(n, m, s, a, r, t):
     t = np.zeros((len(s), len(a), len(s)))
 
     # All transitions probabilities are 1, deterministic
+    #for state, action in G.adjacency():
+    #    for elem in action:
+    #        t[state, elem, elem] = 1.0
+    prob = 0.8
     for state, action in G.adjacency():
-        for elem in action:
-            t[state, elem, elem] = 1.0
+        for act in action.keys():
+            for state_ in action.keys():
+                if len(action.keys()) == 1:
+                    t[state, act, act] = 1
+                elif state_ != act:
+                    t[state, act, state_] = (1 - prob) / (len(action.keys()) - 1)
+                else:
+                    t[state, act, act] = prob
     
     return G, s, a, r, t
 
