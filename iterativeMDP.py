@@ -3,55 +3,68 @@ import numpy as np
 import networkx as nx
 import random as rd
 #%%
-# Importante data for MDP
+# Important data for MDP
 
 s = None # all states
 a = None # all actions
 r = None # all rewards
 t = None # all transitions probabilities
 
-discount = .9 # discount factor, for future rewards
-epsilon = .01 # epsilon, for convergence
+discount = .95 # discount factor, for future rewards
+epsilon = .0001 # epsilon, for convergence
 
 values = None # value function
 policy = None # policy learned
 q = None # for q(s, a) table
+
 # %%
 # Stochastic shortest path problem
 
-# n = number of nodes, m = number of edges
-n = 6
-m = 10
+def createGraph(n, m, s, a, r, t):
+    # n = number of nodes
+    # m = number of edges
 
-# Creating graphs
-# Random graph with n nodes, m edges
-# G = nx.gnm_random_graph(n, m)
-# Complete graph with n nodes
-G = nx.complete_graph(n)
+    # Creating graphs
+    # Random graph with n nodes, m edges
+    G = nx.gnm_random_graph(n, m)
+    # Complete graph with n nodes
+    # G = nx.complete_graph(n)
 
-# Fill all edges with weights in range (0, 11)
-for u, v in G.edges():
-    G.edges[u, v]['weight'] = rd.randint(0, 11)
+    # Fill all edges with weights in range (0, 11)
+    for u, v in G.edges():
+        G.edges[u, v]['weight'] = rd.randint(1, 11)
 
-# Initializzing MDP variables
-s = np.array(G.nodes) # state list
-a = np.array(G.nodes) # action list
-r = np.zeros((len(s), len(a), len(s))) # state s, action a, reach state s_
+    # Initializzing MDP variables
+    s = np.array(G.nodes) # state list
+    a = np.array(G.nodes) # action list
+    r = np.zeros((len(s), len(a), len(s))) # state s, action a, reach state s_
 
-# fill reward table witch weights
-for u in s:
-    for v in G[u].keys():	
-        for action in G[u].keys():
-            r[u, v, action] = G[u][action]['weight']
+    # fill reward table witch edge weights
+    # r(s, a, s_) = current state s, take action a, reach state s_, reward
+    for u in s:
+        for v in G[u].keys():	
+            for action in G[u].keys():
+                r[u, v, action] = G[u][action]['weight']
 
-# Transitions probabilities
-t = np.zeros((len(s), len(a), len(s)))
+    # Transitions probabilities
+    # t(s, a, s_) = current state s, take action a, reach state s_, probability
+    t = np.zeros((len(s), len(a), len(s)))
 
-# All transitions probabilities are 1, deterministic
-for state, action in G.adjacency():
-    for elem in action:
-        t[state, elem, elem] = 1.0
+    # All transitions probabilities are 1, deterministic
+    for state, action in G.adjacency():
+        for elem in action:
+            t[state, elem, elem] = 1.0
+    
+    return G, s, a, r, t
 
+# %%
+def drawGraph(G):
+    pos = nx.spring_layout(G)
+    nx.draw(G, pos, with_labels=True)
+    # Labels of edges
+    edge_labels = nx.get_edge_attributes(G, 'weight')
+    # Decorated graph with labels of edges
+    nx.draw_networkx_edge_labels(G, pos, edge_labels)
 # %%
 
 # Value iteration
@@ -92,20 +105,17 @@ def valueIteration(s, a, r, t):
         for i in range(len(s)):
             if q[state, i] == 0:
                 continue
-            elif q[state, i] < q[state, argmin]:
+            elif q[state, i] <= q[state, argmin]:
                 argmin = i
         policy[state] = argmin
         
     return values, q, policy
-# %%
-def drawGraph(G):
-    pos = nx.spring_layout(G)
-    nx.draw(G, pos, with_labels=True)
-    # Labels of edges
-    edge_labels = nx.get_edge_attributes(G, 'weight')
-    # Decorated graph with labels of edges
-    nx.draw_networkx_edge_labels(G, pos, edge_labels)
+
+
 #%%
+n = 6
+m = 10
+G, s, a, r, t = createGraph(n, m, s, a, r, t)
 drawGraph(G)
 # %%
 values, q, policy = valueIteration(s, a, r, t)
@@ -113,5 +123,6 @@ values, q, policy = valueIteration(s, a, r, t)
 print('values', values)
 print('q', q)
 print('policy', policy)
+print('shoertest path', nx.shortest_path(G, 0, n - 1, 'weight'))
 
 # %%
