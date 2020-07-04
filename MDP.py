@@ -18,7 +18,6 @@ values = None # value function
 qualities = None # for q(s, a) table
 policy = None # policy learned
 
-
 # %%
 
 # A função de valor é em cima de uma distribuição de probabilidade?
@@ -27,7 +26,8 @@ policy = None # policy learned
 # ação ... escolher qual ação tomar...
 
 def valueIteration(states, actions, rewards, transitions):
-
+    NUM_STATES = len(states)
+    
     # 1 - Initialization with variables with 0
     values = np.zeros(NUM_STATES) # v(s) function
     qualities = np.zeros((NUM_STATES, NUM_STATES)) # q(s, a) function
@@ -68,7 +68,8 @@ def valueIteration(states, actions, rewards, transitions):
 #%%
 
 def policyIteration(state, actions, rewards, transitions):
-        
+    NUM_STATES = len(states)
+
     # 1 - Initialization with a random policy
     values = np.zeros(NUM_STATES) # v(s) function
     qualities = np.zeros((NUM_STATES, NUM_STATES)) # q(s, a) function
