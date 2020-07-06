@@ -3,20 +3,20 @@ import numpy as np
 import networkx as nx
 import random as rd
 
-#%%
+# %%
 # Important data for MDP
 
-states = None # all states
-actions = None # all actions(state)
-rewards = None # all rewards
-transitions = None # all transitions probabilities
+states = None  # all states
+actions = None  # all actions(state)
+rewards = None  # all rewards
+transitions = None  # all transitions probabilities
 
-discount = .95 # discount factor, for future rewards
-epsilon = .0001 # epsilon, for convergence
+discount = .95  # discount factor, for future rewards
+epsilon = .0001  # epsilon, for convergence
 
-values = None # value function
-qualities = None # for q(s, a) table
-policy = None # policy learned
+values = None  # value function
+qualities = None  # for q(s, a) table
+policy = None  # policy learned
 
 # %%
 
@@ -25,19 +25,20 @@ policy = None # policy learned
 # decisão ... escolher uma das distribuições de prob disponíveis no nó
 # ação ... escolher qual ação tomar...
 
+
 def valueIteration(states, actions, rewards, transitions):
     NUM_STATES = len(states)
-    
+
     # 1 - Initialization with variables with 0
-    values = np.zeros(NUM_STATES) # v(s) function
-    qualities = np.zeros((NUM_STATES, NUM_STATES)) # q(s, a) function
-    policy = np.zeros(NUM_STATES) # pi(s) policy
+    values = np.zeros(NUM_STATES)  # v(s) function
+    qualities = np.zeros((NUM_STATES, NUM_STATES))  # q(s, a) function
+    policy = np.zeros(NUM_STATES)  # pi(s) policy
 
     endStates = [states[-1]]
 
     # 2 - Iteration in bellman equation for search optmal value function
     while True:
-        oldValues = np.copy(values) # for convergence
+        oldValues = np.copy(values)  # for convergence
 
         for s in states:
             if s in endStates:
@@ -45,12 +46,13 @@ def valueIteration(states, actions, rewards, transitions):
             for a in actions(s):
                 qualities[s, a] = rewards[s, a] + discount * \
                     np.dot(transitions[:, s, a], values)
-            
-            values[s] = np.min([value for value in qualities[s, :] if value != 0])
 
-        if np.max(np.abs(values - oldValues)) <= epsilon: # convergence test
+            values[s] = np.min(
+                [value for value in qualities[s, :] if value != 0])
+
+        if np.max(np.abs(values - oldValues)) <= epsilon:  # convergence test
             break
-    
+
     # 3 - Extract policy from value function.
     for s in states:
         if s in endStates:
@@ -61,19 +63,20 @@ def valueIteration(states, actions, rewards, transitions):
                 continue
             elif qualities[s, i] <= qualities[s, argmin]:
                 argmin = i
-        policy[s] = argmin        
+        policy[s] = argmin
 
     return values, qualities, policy
 
-#%%
+# %%
+
 
 def policyIteration(state, actions, rewards, transitions):
     NUM_STATES = len(states)
 
     # 1 - Initialization with a random policy
-    values = np.zeros(NUM_STATES) # v(s) function
-    qualities = np.zeros((NUM_STATES, NUM_STATES)) # q(s, a) function
-    policy = [np.random.choice(actions(s)) for s in states] # random policy
+    values = np.zeros(NUM_STATES)  # v(s) function
+    qualities = np.zeros((NUM_STATES, NUM_STATES))  # q(s, a) function
+    policy = [np.random.choice(actions(s)) for s in states]  # random policy
 
     endStates = [states[-1]]
 
@@ -82,16 +85,16 @@ def policyIteration(state, actions, rewards, transitions):
 
         while True:
             oldValues = np.copy(values)
-            
+
             for s in states:
                 if s in endStates:
                     continue
                 values[s] = rewards[s, policy[s]] + discount * \
                     np.dot(transitions[:, s, policy[s]], values)
 
-            if np.max(np.abs(values - oldValues)) <= epsilon: 
+            if np.max(np.abs(values - oldValues)) <= epsilon:
                 break
-                
+
         # 3 - Policy Improvement
 
         policyStable = True
@@ -101,16 +104,18 @@ def policyIteration(state, actions, rewards, transitions):
             for a in actions(s):
                 qualities[s, a] = rewards[s, a] + discount * \
                     np.dot(transitions[:, s, a], values)
-                
-            policy[s] = np.argmin([x if x > 0 else 1000000 for x in qualities[s, :]])
+
+            policy[s] = np.argmin(
+                [x if x > 0 else 1000000 for x in qualities[s, :]])
 
             if oldAction != policy[s]:
                 policyStable = False
-        
+
         if policyStable:
             return values, qualities, policy
 
 # %%
+
 
 def createModel(n):
     # n = number of nodes
@@ -120,16 +125,16 @@ def createModel(n):
     # G = nx.gnm_random_graph(n, m)
     # Create a edge with x of probability
     G = nx.erdos_renyi_graph(n, 0.5, directed=False)
-    
+
     # Random weights
     for u, v in G.edges():
         G.edges[u, v]['weight'] = rd.randint(1, 11)
 
     # Initializing MDP variables
 
-    states = np.array(G.nodes) # S = State list
-    actions = lambda s: list(G[s].keys()) # A(s) = Action function
-    rewards = np.zeros((len(states), len(states))) # R = Reward list
+    states = np.array(G.nodes)  # S = State list
+    def actions(s): return list(G[s].keys())  # A(s) = Action function
+    rewards = np.zeros((len(states), len(states)))  # R = Reward list
 
     for s in states:
         for a in actions(s):
@@ -147,6 +152,7 @@ def createModel(n):
 
 # %%
 
+
 def policyTest(policy, initialState, endStates):
     currentState = initialState
     history = [currentState]
@@ -154,18 +160,18 @@ def policyTest(policy, initialState, endStates):
     while currentState not in endStates:
         currentState = int(policy[currentState])
         history.append(currentState)
-    
+
     path = ''
     for p in history:
         path += f' => {p}'
 
+    print(f"Histórico{path}")
 
-    print(f"Histórico{path}" )
-    
     return history
 
 # %%
- 
+
+
 def drawGraph(G):
     pos = nx.spring_layout(G)
     nx.draw(G, pos, with_labels=True)
@@ -174,16 +180,19 @@ def drawGraph(G):
 
 # %%
 
+
 NUM_STATES = 10
 
 G, states, actions, rewards, transitions = createModel(NUM_STATES)
 drawGraph(G)
 
 # %%
-values, qualities, policy = policyIteration(states, actions, rewards, transitions)
+values, qualities, policy = policyIteration(
+    states, actions, rewards, transitions)
 policyTest(policy, 0, [NUM_STATES - 1])
 
 # %%
-values, qualities, policy = valueIteration(states, actions, rewards, transitions)
+values, qualities, policy = valueIteration(
+    states, actions, rewards, transitions)
 policyTest(policy, 0, [NUM_STATES - 1])
 # %%

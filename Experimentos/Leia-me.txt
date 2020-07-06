@@ -1,0 +1,9 @@
+Experimentos:
+Foram criados n grafos de mesmo tamanho, foi feito a média do tempo e comparado com o algoritmos de dijkstra da biblioteca netwokx. Todos os dados foram salvos para futuras replicações se assim desejar.
+
+
+Estrutura das pastas
+-- numberOfNodes_numberOfEdges (non_noe)
+- non_noe_results
+- non_noe_nodes_n
+- non_noe_edges_n
